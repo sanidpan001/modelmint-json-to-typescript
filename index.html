@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModelMint — JSON to TypeScript Converter</title>
+<meta name="description" content="ModelMint is a free JSON to TypeScript converter. Paste JSON and get clean interfaces with smart nested naming, optional fields detected across arrays, and one-click copy or .ts download.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:Inter,system-ui,sans-serif}.mono{font-family:'JetBrains Mono',monospace}textarea:focus,pre:focus{outline:2px solid #3178c6;outline-offset:2px}</style>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What does ModelMint convert, exactly?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ModelMint takes any valid JSON value — most usefully an object or an array of objects — and generates TypeScript interfaces that describe its shape. Strings become string, numbers become number, booleans become boolean, null becomes null, nested objects become named interfaces, and arrays become typed arrays such as string[] or OrderItem[]. The result is plain TypeScript you can paste straight into a project."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does optional field detection work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "When your JSON is an array of objects, ModelMint compares every object in the array. A key that appears in some objects but not in others is marked optional with a question mark, for example nickname?: string. Keys present in every object stay required. This mirrors real API responses, where some records omit fields, and it saves you from adding the question marks by hand."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are nested interfaces named?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nested types get smart, readable names built from their parent and their key. Inside a root interface, a user object becomes User, and an address inside that user becomes UserAddress. Array keys are singularised first, so items becomes Item and categories becomes Category. If two different shapes would collide on the same name, ModelMint appends a number so every interface stays unique."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens when a field has different types in different records?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ModelMint builds a union. If one record has count as a number and another has it as a string, the field becomes count: string | number. If a field is sometimes null, null joins the union, for example string | null, so your code is forced to handle the missing-value case instead of discovering it at runtime."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my JSON uploaded anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. ModelMint runs entirely in your browser. The JSON you paste is parsed and converted on your own device, nothing is sent to a server, and nothing is stored after you close the tab. That makes it safe for internal API payloads, staging responses, and sample data you would rather not paste into a hosted service."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I customise the output, rename the root type, or add documentation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Set the root interface name to match your domain, such as Product, Customer, or ApiResponse, and toggle the export keyword, alphabetical key sorting, and JSDoc comments. With JSDoc on, each interface and field gains a short comment showing an example value from your data, which makes generated types easier to review in an editor."
+      }
+    }
+  ]
+}</script>
+</head>
+<body id="top" class="bg-[#f4f7fb] text-slate-800 min-h-screen">
+<header class="sticky top-0 z-40 bg-[#3178c6] text-white shadow-md">
+ <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+  <a href="#top" class="flex items-center gap-2.5 font-extrabold text-xl tracking-tight"><span class="bg-white text-[#3178c6] rounded-lg w-9 h-9 grid place-items-center mono text-sm font-bold">TS</span> ModelMint</a>
+  <nav class="flex items-center gap-5 text-sm font-semibold"><a href="#top" class="hover:underline">Home</a><a href="https://fixoraa.tech" class="hover:underline">More Tools</a></nav>
+ </div>
+</header>
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pt-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <div class="origin-top scale-[0.44] sm:scale-100 shrink-0">
+        <script>
+          atOptions = { 'key' : '4e68ac77881c17fe128a46565d9a4e8c', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+        </script>
+        <script src="https://www.highrevenueformat.com/4e68ac77881c17fe128a46565d9a4e8c/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+<main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+ <div class="text-center max-w-2xl mx-auto">
+  <span class="inline-block bg-[#3178c6] text-white text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">✓ Unlimited Free Usage</span>
+  <h1 class="mt-4 text-3xl sm:text-5xl font-extrabold text-[#16365c] leading-tight">JSON to TypeScript, <span class="text-[#3178c6]">minted in seconds.</span></h1>
+  <p class="mt-3 text-slate-600">Paste JSON on the left. Get clean, named TypeScript interfaces on the right — with optional fields detected across arrays and nulls turned into honest unions.</p>
+ </div>
+
+ <section class="mt-8 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" aria-label="JSON to TypeScript converter">
+  <div class="flex flex-wrap items-end gap-3 p-4 bg-slate-50 border-b border-slate-200">
+   <label class="text-sm font-semibold">Root name <input id="rootName" value="Root" class="mono mt-1 block border border-slate-300 rounded-lg px-3 py-2 w-40 bg-white"></label>
+   <label class="flex items-center gap-2 text-sm font-medium pb-2"><input type="checkbox" id="optExport" checked class="w-4 h-4 accent-[#3178c6]"> export</label>
+   <label class="flex items-center gap-2 text-sm font-medium pb-2"><input type="checkbox" id="optJsdoc" class="w-4 h-4 accent-[#3178c6]"> JSDoc</label>
+   <label class="flex items-center gap-2 text-sm font-medium pb-2"><input type="checkbox" id="optSort" class="w-4 h-4 accent-[#3178c6]"> Sort keys</label>
+   <div class="flex flex-wrap gap-2 ml-auto pb-1">
+    <button data-sample="user" class="sampleBtn bg-white border border-[#3178c6] text-[#3178c6] font-semibold px-3 py-2 rounded-lg text-sm hover:bg-blue-50">User sample</button>
+    <button data-sample="order" class="sampleBtn bg-white border border-[#3178c6] text-[#3178c6] font-semibold px-3 py-2 rounded-lg text-sm hover:bg-blue-50">Order sample</button>
+    <button data-sample="array" class="sampleBtn bg-white border border-[#3178c6] text-[#3178c6] font-semibold px-3 py-2 rounded-lg text-sm hover:bg-blue-50">Array sample</button>
+   </div>
+  </div>
+  <div class="grid md:grid-cols-2">
+   <div class="p-4 border-b md:border-b-0 md:border-r border-slate-200">
+    <div class="flex items-center justify-between mb-2"><label for="jsonInput" class="font-bold text-[#16365c]">〈 〉 JSON input</label><span id="inputStats" class="text-xs text-slate-500 mono">0 chars</span></div>
+    <textarea id="jsonInput" spellcheck="false" class="mono w-full h-80 border border-slate-300 rounded-xl p-3 text-sm leading-relaxed" placeholder='Paste JSON here, for example:&#10;{ "id": 1, "name": "Ada" }'></textarea>
+    <p id="errorBox" class="hidden mt-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2" role="alert"></p>
+    <div class="flex flex-wrap gap-2 mt-3">
+     <button id="convertBtn" class="bg-[#3178c6] hover:bg-[#2563a8] text-white font-bold px-5 py-2.5 rounded-lg">Convert →</button>
+     <button id="formatBtn" class="bg-white border border-slate-300 font-semibold px-4 py-2.5 rounded-lg">Format JSON</button>
+     <button id="clearBtn" class="bg-white border border-slate-300 font-semibold px-4 py-2.5 rounded-lg">Clear</button>
+    </div>
+   </div>
+   <div class="p-4 bg-[#0f243e]">
+    <div class="flex items-center justify-between mb-2"><label for="tsOutput" class="font-bold text-white">TS TypeScript output</label><span id="outputStats" class="text-xs text-blue-200 mono">0 interfaces · 0 fields</span></div>
+    <textarea id="tsOutput" readonly spellcheck="false" class="mono w-full h-80 bg-[#0b1b30] text-[#a5d6ff] border border-[#2a4a73] rounded-xl p-3 text-sm leading-relaxed" placeholder="Your interfaces will appear here…"></textarea>
+    <div class="flex flex-wrap gap-2 mt-3">
+     <button id="copyBtn" class="bg-white text-[#16365c] font-bold px-4 py-2.5 rounded-lg">Copy .ts</button>
+     <button id="downloadBtn" class="bg-[#3178c6] hover:bg-[#2563a8] text-white font-bold px-4 py-2.5 rounded-lg">Download .ts</button>
+     <span id="copyMsg" class="text-blue-100 text-sm self-center"></span>
+    </div>
+   </div>
+  </div>
+  <div class="px-4 py-3 bg-blue-50 text-sm text-[#16365c] border-t border-blue-100">💡 <strong>Optional detection:</strong> paste an <em>array</em> of objects and any key missing from some records automatically becomes <span class="mono">field?</span>. Mixed types become unions, and <span class="mono">null</span> is kept in the type — never silently dropped.</div>
+ </section>
+
+ <section class="grid sm:grid-cols-3 gap-4 mt-6 text-center">
+  <div class="bg-white border border-slate-200 rounded-xl p-5"><p class="text-2xl font-extrabold text-[#3178c6]">Smart names</p><p class="text-sm text-slate-600 mt-1">Nested objects become User, UserAddress, Item — not Anonymous1.</p></div>
+  <div class="bg-white border border-slate-200 rounded-xl p-5"><p class="text-2xl font-extrabold text-[#3178c6]">Honest unions</p><p class="text-sm text-slate-600 mt-1">A field that is sometimes a string and sometimes null says so.</p></div>
+  <div class="bg-white border border-slate-200 rounded-xl p-5"><p class="text-2xl font-extrabold text-[#3178c6]">100% private</p><p class="text-sm text-slate-600 mt-1">Conversion happens in your browser. Nothing is uploaded.</p></div>
+ </section>
+</main>
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pb-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <script async src="https://js.wpadmngr.com/static/adManager.js" data-admpid="464498"></script>
+    </div>
+  </div>
+</div>
+<article id="seo-article" class="max-w-4xl mx-auto px-4 sm:px-6 py-10 prose-like">
+ <h2 class="text-2xl font-extrabold text-[#16365c]">Why Convert JSON to TypeScript?</h2>
+ <p class="mt-4 leading-relaxed text-slate-700">Every modern application speaks JSON. APIs return it, configuration files are written in it, databases store it, and logs are full of it. JSON is flexible and universal, but inside a TypeScript codebase that flexibility becomes a liability the moment you start guessing at shapes. You write response.data.user.address.city, the editor offers no autocomplete, a rename slips through unnoticed, and a field that was a number last month quietly arrives as a string. Converting a real JSON payload into TypeScript interfaces turns those guesses into a contract. The compiler checks every access, the editor completes every property, and refactors that touch a shared type surface everywhere it matters. ModelMint exists to make that conversion instant: paste a genuine sample of the data you actually receive, and receive interfaces that describe it faithfully.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">Hand-writing interfaces from a large payload is slow and error-prone. A realistic API response can nest five levels deep, repeat the same object shape inside arrays, and include dozens of fields that nobody wants to type out manually. Worse, humans tend to write the interface they expect rather than the one the data proves: they mark every field required, assume every identifier is a number, and miss the one record in fifty where a value is null. A converter that studies the actual data makes none of those assumptions. It reads what is there, counts what repeats, and notices what is sometimes missing. The result is not a prettier guess but a description derived from evidence, which is exactly what a type is supposed to be.</p>
+ <h3 class="mt-8 text-xl font-bold text-[#16365c]">Optional Fields: The Detail Most Converters Get Wrong</h3>
+ <p class="mt-4 leading-relaxed text-slate-700">The single most valuable behaviour in this tool is optional field detection across arrays of objects. Real collections are uneven. In a list of users, most have a phone number and some do not. In a list of products, some carry a discount price and others never go on sale. If you convert only the first object in the array, every field looks required, and your code will confidently read values that are absent for half your records. By comparing all objects in an array, ModelMint marks any key missing from at least one record as optional, rendering it with a question mark. Your code then has to check before it reads, which is precisely the discipline that prevents the classic undefined-is-not-an-object crash in production.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">The same cross-record comparison catches type drift. APIs evolve, backends are inconsistent, and different code paths populate the same field differently. One order may store its total as a number while a legacy record stores it as a formatted string. One event may set its payload to an object while another sets it to null. A careful converter responds with a union type, joining every observed possibility with a vertical bar. Unions can feel verbose at first, but they are the truth, and TypeScript narrows them beautifully at the points where you check them. Preferring a slightly longer, truthful type over a short, fictional one is the core design philosophy here.</p>
+ <h3 class="mt-8 text-xl font-bold text-[#16365c]">Smart Naming for Nested Types</h3>
+ <p class="mt-4 leading-relaxed text-slate-700">Generated code lives or dies by its names. Tools that emit Root, Root1, Root2, or a single giant inline type produce output nobody wants to keep. Readable generation names each nested object after its place in the structure: a profile contains a User, a user contains a UserAddress, and a list of line items contains an Item. Array keys are singularised, because an array of items is made of individual items, and categories resolve to a single Category rather than a plural that reads awkwardly as a type name. When two genuinely different shapes would claim the same name, a numeric suffix keeps them distinct instead of silently merging structures that should stay separate.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">Naming also respects the root you choose. The root interface name is the one your team will import everywhere, so it should match your domain language: Product, Customer, Invoice, SearchResponse, or whatever the payload represents. Set it before you convert, and nested names build naturally from context. Keys that are not valid TypeScript identifiers — keys with spaces, dashes, or leading digits, which JSON happily allows — are safely quoted in the output, so unusual payloads still produce code that compiles without manual repair.</p>
+ <h3 class="mt-8 text-xl font-bold text-[#16365c]">How to Use the Generated Types Well</h3>
+ <p class="mt-4 leading-relaxed text-slate-700">Generation is the beginning, not the end, of good typing. Paste the output into a types file, then read it once with human eyes. Generation can tell you that a field is a string, but only you know whether that string is an email address, a URL, or an identifier that deserves a branded type. Consider tightening a few high-value fields: dates arrive as strings, yet converting them to a DateString alias documents intent; status fields often hold a small set of literals, and replacing string with a union of those literals gives you exhaustive checks. Keep the generated shape as the foundation, then refine the places where your domain knowledge adds information the data alone cannot provide.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">Sample size matters too. Converting from one small example produces types for that example only. Converting from a large, representative response — ideally a full page of real results, including the awkward records — produces types you can trust. If an endpoint paginates, grab the largest page you can. If different variants exist, such as success and error envelopes, convert them separately and combine the results with a union or a discriminated check on a status field. And when the API changes, regenerate: keeping a saved sample of each important response in your repository makes refreshing its types a thirty-second habit rather than a archaeology project.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">Generated interfaces pair naturally with runtime validation. Types protect you at compile time, but data crossing a network boundary can still surprise you at runtime, especially when a backend deploys without telling the frontend team. Many teams use the generated interfaces as the target shape for a validator, asserting that incoming data matches the type before the rest of the application trusts it. Even without a validation library, the interfaces make code reviews sharper: when a pull request changes a type, reviewers can see exactly which fields appeared, vanished, or changed, and ask whether the code that consumes them changed too.</p>
+ <h3 class="mt-8 text-xl font-bold text-[#16365c]">Common Patterns You Will See in the Output</h3>
+ <p class="mt-4 leading-relaxed text-slate-700">Arrays of primitives become simple typed arrays, such as string arrays for tags or number arrays for scores. Empty arrays become unknown arrays, an honest admission that the sample offered no evidence about the element type; add a better sample or annotate that field yourself. Deeply nested configuration objects unfold into a family of small interfaces rather than one enormous declaration, which keeps each type reusable — a shared Address shape, for instance, can describe both a billing address and a shipping address when the structures match closely enough for your codebase. Mixed arrays, rare but real, become arrays of unions, preserving every element kind the sample contained.</p>
+ <p class="mt-4 leading-relaxed text-slate-700">Numbers deserve one clarification. JSON has a single numeric type, so integers and decimals both become the TypeScript number type. If a field must be an integer in your domain, that constraint lives in your validation logic rather than in the type itself. Booleans are detected exactly, strings stay strings even when they look like dates or numbers, and nested arrays — matrices, grids, coordinate lists — become multi-dimensional array types automatically. Nothing is coerced, rounded, or reinterpreted: the conversion describes your JSON as it is.</p>
+ <h3 class="mt-8 text-xl font-bold text-[#16365c]">Privacy and Workflow</h3>
+ <p class="mt-4 leading-relaxed text-slate-700">Because conversion happens entirely in your browser, ModelMint fits workflows where hosted tools cannot go. Internal staging responses, pre-release payloads, customer-shaped sample data, and anything covered by a confidentiality obligation can be converted safely, because the data never leaves your machine. There is no account, no upload queue, and no copy of your JSON sitting in someone else database. When you finish, copy the TypeScript with one click or download it as a .ts file named after your root type, ready to drop into a project. Use JSDoc mode when the types will be read by teammates or consumed from JavaScript, since the example values embedded in the comments make each field self-explanatory. However large or awkward your payload is, the path from raw JSON to trustworthy types should take seconds — and with this tool, it does.</p>
+</article>
+<section class="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
+ <h2 class="text-2xl font-extrabold text-[#16365c] mb-5">Frequently Asked Questions</h2>
+ <div class="space-y-3"><details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">What does ModelMint convert, exactly?</summary><p class="mt-3 text-slate-600 leading-relaxed">ModelMint takes any valid JSON value — most usefully an object or an array of objects — and generates TypeScript interfaces that describe its shape. Strings become string, numbers become number, booleans become boolean, null becomes null, nested objects become named interfaces, and arrays become typed arrays such as string[] or OrderItem[]. The result is plain TypeScript you can paste straight into a project.</p></details>
+<details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">How does optional field detection work?</summary><p class="mt-3 text-slate-600 leading-relaxed">When your JSON is an array of objects, ModelMint compares every object in the array. A key that appears in some objects but not in others is marked optional with a question mark, for example nickname?: string. Keys present in every object stay required. This mirrors real API responses, where some records omit fields, and it saves you from adding the question marks by hand.</p></details>
+<details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">How are nested interfaces named?</summary><p class="mt-3 text-slate-600 leading-relaxed">Nested types get smart, readable names built from their parent and their key. Inside a root interface, a user object becomes User, and an address inside that user becomes UserAddress. Array keys are singularised first, so items becomes Item and categories becomes Category. If two different shapes would collide on the same name, ModelMint appends a number so every interface stays unique.</p></details>
+<details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">What happens when a field has different types in different records?</summary><p class="mt-3 text-slate-600 leading-relaxed">ModelMint builds a union. If one record has count as a number and another has it as a string, the field becomes count: string | number. If a field is sometimes null, null joins the union, for example string | null, so your code is forced to handle the missing-value case instead of discovering it at runtime.</p></details>
+<details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">Is my JSON uploaded anywhere?</summary><p class="mt-3 text-slate-600 leading-relaxed">No. ModelMint runs entirely in your browser. The JSON you paste is parsed and converted on your own device, nothing is sent to a server, and nothing is stored after you close the tab. That makes it safe for internal API payloads, staging responses, and sample data you would rather not paste into a hosted service.</p></details>
+<details class="bg-white border border-slate-200 rounded-xl p-5"><summary class="font-semibold cursor-pointer text-[#1e3a5f]">Can I customise the output, rename the root type, or add documentation?</summary><p class="mt-3 text-slate-600 leading-relaxed">Yes. Set the root interface name to match your domain, such as Product, Customer, or ApiResponse, and toggle the export keyword, alphabetical key sorting, and JSDoc comments. With JSDoc on, each interface and field gains a short comment showing an example value from your data, which makes generated types easier to review in an editor.</p></details></div>
+</section>
+<footer class="bg-[#16365c] text-blue-100 text-center text-sm py-6 px-4">ModelMint — JSON to TypeScript Converter. Free, private, and unlimited.<p class="fx-credit" style="text-align:center;font-size:12.5px;opacity:.62;margin:10px auto 2px;letter-spacing:.01em">Made by <a href="https://fixoraa.tech" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:2px">Fixoraa</a></p>
+</footer>
+<script id="lib-modelmint">
+/* ModelMintLib - JSON to TypeScript conversion. Pure logic, no DOM. */
+var ModelMintLib = (function () {
+  'use strict';
+
+  function pascalCase(str) {
+    if (str === null || str === undefined) return '';
+    var s = String(str);
+    // Split camelCase boundaries
+    s = s.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+    var parts = s.split(/[^A-Za-z0-9]+/).filter(function (p) { return p.length > 0; });
+    var out = parts.map(function (p) {
+      return p.charAt(0).toUpperCase() + p.slice(1);
+    }).join('');
+    if (!out) return '';
+    if (/^[0-9]/.test(out)) out = 'T' + out;
+    return out;
+  }
+
+  function singularize(word) {
+    var w = String(word || '');
+    if (!w) return w;
+    var lower = w.toLowerCase();
+    if (lower.length > 3 && lower.slice(-3) === 'ies') return w.slice(0, -3) + 'y';
+    if (/(ses|xes|zes|ches|shes)$/i.test(w)) return w.slice(0, -2);
+    if (w.length > 1 && /s$/i.test(w) && !/ss$/i.test(w) && !/us$/i.test(w)) return w.slice(0, -1);
+    return w;
+  }
+
+  function isPlainObject(v) {
+    return v !== null && typeof v === 'object' && !Array.isArray(v);
+  }
+
+  function isValidIdentifier(name) {
+    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(String(name || ''));
+  }
+
+  function formatFieldName(key) {
+    var k = String(key);
+    return isValidIdentifier(k) ? k : JSON.stringify(k);
+  }
+
+  function sanitizeRootName(name) {
+    var p = pascalCase(name === null || name === undefined || String(name).trim() === '' ? 'Root' : String(name).trim());
+    return p || 'Root';
+  }
+
+  function categoryOf(v) {
+    if (v === null) return 'null';
+    if (Array.isArray(v)) return 'array';
+    var t = typeof v;
+    if (t === 'object') return 'object';
+    if (t === 'string') return 'string';
+    if (t === 'number') return 'number';
+    if (t === 'boolean') return 'boolean';
+    return 'unknown';
+  }
+
+  function nameFor(parentName, key, rootName) {
+    var base = pascalCase(key) || 'Value';
+    if (!parentName) return base;
+    if (parentName === rootName) return base;
+    if (parentName.slice(-base.length) === base) return parentName;
+    return parentName + base;
+  }
+
+  function exampleText(v) {
+    try {
+      var s = typeof v === 'string' ? v : JSON.stringify(v);
+      if (s === undefined) s = String(v);
+      s = String(s).replace(/\*\//g, '* /');
+      if (s.length > 60) s = s.slice(0, 57) + '...';
+      return s;
+    } catch (e) { return ''; }
+  }
+
+  function generate(value, options) {
+    options = options || {};
+    var rootName = sanitizeRootName(options.rootName || 'Root');
+    var exportTypes = options.exportTypes !== false;
+    var jsdoc = !!options.jsdoc;
+    var sortKeys = !!options.sortKeys;
+    var ctx = { rootName: rootName, interfaces: [], used: {}, alias: null };
+
+    function uniqueName(base) {
+      if (!ctx.used[base]) { ctx.used[base] = 1; return base; }
+      var i = 2;
+      while (ctx.used[base + i]) i++;
+      ctx.used[base + i] = 1;
+      return base + i;
+    }
+
+    function buildInterface(objects, name) {
+      var iface = { name: name, fields: [] };
+      ctx.interfaces.push(iface);
+      var keyOrder = [], keyValues = {}, keyCounts = {};
+      objects.forEach(function (obj) {
+        Object.keys(obj).forEach(function (k) {
+          if (!(k in keyValues)) { keyOrder.push(k); keyValues[k] = []; keyCounts[k] = 0; }
+          keyValues[k].push(obj[k]); keyCounts[k]++;
+        });
+      });
+      if (sortKeys) keyOrder.sort();
+      keyOrder.forEach(function (k) {
+        var vals = keyValues[k];
+        var optional = keyCounts[k] < objects.length;
+        var type = resolveType(vals, name, k);
+        iface.fields.push({ key: k, fieldName: formatFieldName(k), type: type, optional: optional, example: vals.length ? vals[0] : null });
+      });
+      return name;
+    }
+
+    function resolveType(values, parentName, key) {
+      var cats = {}, order = [];
+      values.forEach(function (v) {
+        var c = categoryOf(v);
+        if (!cats[c]) { cats[c] = []; order.push(c); }
+        cats[c].push(v);
+      });
+      var parts = [];
+      // Stable category order: string, number, boolean, object, array, null, unknown
+      var pref = ['string', 'number', 'boolean', 'object', 'array', 'null', 'unknown'];
+      pref.forEach(function (c) {
+        if (!cats[c]) return;
+        if (c === 'string') parts.push('string');
+        else if (c === 'number') parts.push('number');
+        else if (c === 'boolean') parts.push('boolean');
+        else if (c === 'null') parts.push('null');
+        else if (c === 'unknown') parts.push('unknown');
+        else if (c === 'object') {
+          var desired = nameFor(parentName, key, rootName);
+          var iname = uniqueName(desired);
+          buildInterface(cats[c], iname);
+          parts.push(iname);
+        } else if (c === 'array') {
+          var elems = [];
+          cats[c].forEach(function (arr) { arr.forEach(function (e) { elems.push(e); }); });
+          if (!elems.length) parts.push('unknown[]');
+          else {
+            var elemKey = singularize(key);
+            var elemType = resolveType(elems, parentName, elemKey);
+            if (elemType.indexOf(' | ') !== -1) parts.push('(' + elemType + ')[]');
+            else parts.push(elemType + '[]');
+          }
+        }
+      });
+      // preserve any non-pref categories just in case
+      if (!parts.length) return 'unknown';
+      // Dedupe preserving order
+      var seen = {}, uniq = [];
+      parts.forEach(function (p) { if (!seen[p]) { seen[p] = 1; uniq.push(p); } });
+      return uniq.join(' | ');
+    }
+
+    if (isPlainObject(value)) {
+      ctx.used[rootName] = 1;
+      buildInterface([value], rootName);
+    } else if (Array.isArray(value)) {
+      if (!value.length) {
+        ctx.alias = { name: rootName, type: 'unknown[]' };
+      } else if (value.every(function (v) { return isPlainObject(v); })) {
+        ctx.used[rootName] = 1;
+        buildInterface(value, rootName);
+      } else {
+        var elemType = resolveType(value, '', rootName);
+        ctx.alias = { name: rootName, type: (elemType.indexOf(' | ') !== -1 ? '(' + elemType + ')' : elemType) + '[]' };
+      }
+    } else {
+      var prim = resolveType([value], '', rootName);
+      ctx.alias = { name: rootName, type: prim };
+    }
+
+    var prefix = exportTypes ? 'export ' : '';
+    var blocks = [];
+    if (ctx.alias && !ctx.interfaces.length) {
+      blocks.push(prefix + 'type ' + ctx.alias.name + ' = ' + ctx.alias.type + ';');
+    }
+    ctx.interfaces.forEach(function (iface) {
+      var lines = [];
+      if (jsdoc) lines.push('/**', ' * ' + iface.name, ' */');
+      lines.push(prefix + 'interface ' + iface.name + ' {');
+      iface.fields.forEach(function (f) {
+        if (jsdoc) lines.push('  /** Example: ' + exampleText(f.example) + ' */');
+        lines.push('  ' + f.fieldName + (f.optional ? '?' : '') + ': ' + f.type + ';');
+      });
+      lines.push('}');
+      blocks.push(lines.join('\n'));
+    });
+    if (ctx.alias && ctx.interfaces.length) {
+      blocks.push(prefix + 'type ' + ctx.alias.name + ' = ' + ctx.alias.type + ';');
+    }
+    var fieldCount = ctx.interfaces.reduce(function (n, i) { return n + i.fields.length; }, 0);
+    return { code: blocks.join('\n\n'), interfaces: ctx.interfaces, interfaceCount: ctx.interfaces.length, fieldCount: fieldCount, rootName: rootName };
+  }
+
+  function generateFromJson(text, options) {
+    if (text === null || text === undefined || String(text).trim() === '') {
+      return { ok: false, error: 'Input is empty. Paste some JSON to convert.', code: '', interfaceCount: 0, fieldCount: 0, interfaces: [] };
+    }
+    var parsed;
+    try { parsed = JSON.parse(String(text)); }
+    catch (e) { return { ok: false, error: 'Invalid JSON: ' + e.message, code: '', interfaceCount: 0, fieldCount: 0, interfaces: [] }; }
+    var r = generate(parsed, options);
+    return { ok: true, error: '', code: r.code, interfaces: r.interfaces, interfaceCount: r.interfaceCount, fieldCount: r.fieldCount, rootName: r.rootName };
+  }
+
+  return {
+    pascalCase: pascalCase,
+    singularize: singularize,
+    isPlainObject: isPlainObject,
+    isValidIdentifier: isValidIdentifier,
+    formatFieldName: formatFieldName,
+    sanitizeRootName: sanitizeRootName,
+    categoryOf: categoryOf,
+    generate: generate,
+    generateFromJson: generateFromJson
+  };
+})();
+
+if (typeof module !== 'undefined' && module.exports) { module.exports = ModelMintLib; }
+
+</script>
+<script>
+var $=function(id){return document.getElementById(id)};
+var SAMPLES={
+ user: JSON.stringify({id:1,name:"Ada Lovelace",email:"ada@example.com",isAdmin:false,score:98.5,address:{street:"12 Analytical Way",city:"London",postcode:"N1 234"},tags:["math","poetry"],nickname:null},null,2),
+ order: JSON.stringify({orderId:"ord_1001",total:129.99,currency:"USD",paid:true,items:[{sku:"A1",qty:2,price:49.99},{sku:"B2",qty:1,price:30.01,discount:5}],customer:{name:"Grace",tier:"gold"}},null,2),
+ array: JSON.stringify([{id:1,name:"Mia",phone:"555-0100"},{id:2,name:"Noah"},{id:3,name:"Eli",phone:"555-0102",vip:true}],null,2)
+};
+function opts(){return {rootName:$('rootName').value,exportTypes:$('optExport').checked,jsdoc:$('optJsdoc').checked,sortKeys:$('optSort').checked}}
+function convert(){
+ var raw=$('jsonInput').value;
+ $('inputStats').textContent=raw.length+' chars';
+ var r=ModelMintLib.generateFromJson(raw,opts());
+ if(!r.ok){ $('errorBox').textContent=r.error; $('errorBox').classList.remove('hidden'); $('tsOutput').value=''; $('outputStats').textContent='0 interfaces · 0 fields'; return; }
+ $('errorBox').classList.add('hidden'); $('tsOutput').value=r.code; $('outputStats').textContent=r.interfaceCount+' interfaces · '+r.fieldCount+' fields';
+}
+$('convertBtn').addEventListener('click',convert);
+$('jsonInput').addEventListener('input',function(){ $('inputStats').textContent=$('jsonInput').value.length+' chars'; });
+['rootName','optExport','optJsdoc','optSort'].forEach(function(id){ $(id).addEventListener('change',function(){ if($('jsonInput').value.trim()) convert(); }); });
+$('formatBtn').addEventListener('click',function(){ try{ $('jsonInput').value=JSON.stringify(JSON.parse($('jsonInput').value),null,2); $('errorBox').classList.add('hidden'); convert(); }catch(e){ $('errorBox').textContent='Invalid JSON: '+e.message; $('errorBox').classList.remove('hidden'); } });
+$('clearBtn').addEventListener('click',function(){ $('jsonInput').value=''; $('tsOutput').value=''; $('errorBox').classList.add('hidden'); $('inputStats').textContent='0 chars'; $('outputStats').textContent='0 interfaces · 0 fields'; });
+document.querySelectorAll('.sampleBtn').forEach(function(b){ b.addEventListener('click',function(){ $('jsonInput').value=SAMPLES[b.getAttribute('data-sample')]; convert(); }); });
+$('copyBtn').addEventListener('click',function(){ if(!$('tsOutput').value){ $('copyMsg').textContent='Convert something first.'; return; } navigator.clipboard.writeText($('tsOutput').value).then(function(){ $('copyMsg').textContent='Copied!'; }); });
+$('downloadBtn').addEventListener('click',function(){ if(!$('tsOutput').value){ $('copyMsg').textContent='Convert something first.'; return; } var name=(ModelMintLib.sanitizeRootName($('rootName').value)||'Root'); var blob=new Blob([$('tsOutput').value],{type:'text/typescript'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name.charAt(0).toLowerCase()+name.slice(1)+'.ts'; a.click(); URL.revokeObjectURL(a.href); $('copyMsg').textContent='Downloaded '+a.download; });
+$('jsonInput').value=SAMPLES.user; convert();
+</script>
+</body>
+</html>
